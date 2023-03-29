@@ -1,0 +1,7 @@
+.idea/
+.ruby-version
+
+#rails files
+splitwise_rails/tmp/
+splitwise_rails/coverage/
+splitwise_rails/log/

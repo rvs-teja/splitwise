@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_29_181245) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_29_192503) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -18,11 +18,21 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_181245) do
   create_table "groups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
-    t.string "creator_id", null: false
+    t.uuid "creator_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator_id"], name: "index_groups_on_creator_id"
-    t.index ["name", "creator_id"], name: "index_groups_on_name_and_creator_id"
+    t.index ["name", "creator_id"], name: "index_groups_on_name_and_creator_id", unique: true
+  end
+
+  create_table "user_groups", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "group_id", null: false
+    t.uuid "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id", "user_id"], name: "index_user_groups_on_group_id_and_user_id", unique: true
+    t.index ["group_id"], name: "index_user_groups_on_group_id"
+    t.index ["user_id"], name: "index_user_groups_on_user_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -33,4 +43,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_29_181245) do
     t.index ["user_name"], name: "index_users_on_user_name"
   end
 
+  add_foreign_key "user_groups", "groups"
+  add_foreign_key "user_groups", "users"
 end
