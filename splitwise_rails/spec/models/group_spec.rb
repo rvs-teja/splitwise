@@ -28,4 +28,33 @@ RSpec.describe Group, type: :model do
       end
     end
   end
+
+  xcontext 'when user creates a group' do
+    let(:user) { create(:user) }
+    let(:group) { create(:group, creator: user) }
+
+    it 'should also add him as a member if group' do
+      expect(UserGroup.count).to eq(1)
+    end
+  end
+
+  context 'when a user adds another user to group' do
+
+    let(:existing_user) { create(:user) }
+    let(:group) { create(:group, creator: existing_user) }
+    let(:group_user) { create(:user_group, group: group, user: existing_user) }
+    let(:new_user) { create(:user, user_name: 'test_user') }
+
+    it 'raises error if user is not a member of group' do
+      expect{
+        group.add_users([new_user.id])
+      }.to raise_error
+    end
+
+    it 'add the new member' do
+      expect{
+        group.add_users([new_user.id])
+      }.to change { UserGroup.count }.by(1)
+    end
+  end
 end
