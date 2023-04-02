@@ -54,8 +54,10 @@ group :test do
   gem 'factory_bot_rails'
   gem 'faker'
   gem 'simplecov'
+  gem "jsonpath", "~> 1.1"
 end
 
 gem "graphql", "~> 2.0"
 
 gem "jwt", "~> 2.7"
+

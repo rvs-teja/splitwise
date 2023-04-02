@@ -39,10 +39,6 @@ class SplitwiseRailsSchema < GraphQL::Schema
   end
 
   rescue_from(AuthenticationError) do |err, _obj, _args, _ctx, _field|
-    { errors: [{
-      message: err.message,
-      code: err.code,
-      parameter: err.parameter
-    }] }
+    raise GraphQL::ExecutionError.new(err.message, extensions: { code: err.code, parameter: err.parameter })
   end
 end
