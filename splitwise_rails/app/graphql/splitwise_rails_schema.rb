@@ -37,4 +37,12 @@ class SplitwiseRailsSchema < GraphQL::Schema
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
     GlobalID.find(global_id)
   end
+
+  rescue_from(AuthenticationError) do |err, _obj, _args, _ctx, _field|
+    { errors: [{
+      message: err.message,
+      code: err.code,
+      parameter: err.parameter
+    }] }
+  end
 end
