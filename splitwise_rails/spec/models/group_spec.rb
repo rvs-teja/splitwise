@@ -2,9 +2,10 @@ require 'rails_helper'
 
 RSpec.describe Group, type: :model do
 
-  let(:group) { build(:group) }
-
   describe 'validations' do
+
+    let(:group) { build(:group) }
+
     it 'is valid with required params' do
       expect(group).to be_valid
     end
@@ -18,43 +19,58 @@ RSpec.describe Group, type: :model do
       group.creator = nil
       expect(group).to be_invalid
     end
+  end
 
-    context 'when user creates a group' do
-      let(:group_1) { create(:group) }
-      let(:group_2) { build(:group, name: group_1.name, creator: group_1.creator) }
+  context 'when group is created successfully' do
 
-      it 'should have a unique name' do
-        expect(group_2).to be_invalid
-      end
+    let(:creator) { create(:user) }
+    let(:group) { create(:group, creator: creator ) }
+
+    it 'adds the user to the group' do
+      expect(group.users.first).to eq(creator)
     end
   end
 
-  xcontext 'when user creates a group' do
-    let(:user) { create(:user) }
-    let(:group) { create(:group, creator: user) }
+  context 'when user tries to create another group with same name' do
+    let!(:current_user) { create(:user) }
+    let!(:group) { create(:group, creator: current_user) }
+    let(:group_1) { build(:group, creator: current_user) }
 
-    it 'should also add him as a member if group' do
-      expect(UserGroup.count).to eq(1)
+    it 'raises an error' do
+      expect(group_1).to be_invalid
     end
   end
 
-  context 'when a user adds another user to group' do
+  describe 'when a user adds another user to group' do
 
-    let(:existing_user) { create(:user) }
-    let(:group) { create(:group, creator: existing_user) }
-    let(:group_user) { create(:user_group, group: group, user: existing_user) }
-    let(:new_user) { create(:user, user_name: 'test_user') }
+    let!(:user) { create(:user) }
+    let!(:group) { create(:group, creator: user) }
+    let!(:new_user) { create(:user, user_name: 'new-user') }
 
-    xit 'raises error if user is not a member of group' do
-      expect{
-        group.add_users([new_user.id])
-      }.to raise_error
-    end
-
-    it 'add the new member' do
-      expect{
+    it 'adds the new members' do
+      expect {
         group.add_users([new_user.id])
       }.to change { UserGroup.count }.by(1)
+    end
+
+    context 'when user is already a member of group' do
+      let!(:group_user) { create(:user_group, user: new_user, group: group) }
+
+      it 'raises an error' do
+        expect {
+          group.add_users([new_user.id])
+        }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
+    context 'when user is not found' do
+      let!(:new_user) { build(:user, id: 'invalid-user') }
+
+      it 'raises an error' do
+        expect {
+          group.add_users([new_user.id])
+        }.to raise_error(ActiveRecord::RecordNotFound)
+      end
     end
   end
 end

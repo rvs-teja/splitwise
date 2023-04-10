@@ -32,19 +32,14 @@ RSpec.describe Mutations::Login, type: :request do
 
   describe 'when wrong credentials are provided' do
 
-    shared_examples 'invalid credentials' do |message, parameter|
+    shared_examples 'invalid credentials' do
       it 'raises an error' do
         api_call
 
         json = JSON.parse(response.body)
-        errors = JsonPath.on(json, '$..errors')[0][0]
-        expect(errors['message']).to eq(message)
-        expect(errors['extensions']).to include({
-                                                  'code' => 'AUTHENTICATION_ERROR',
-                                                  'parameter' => parameter
-                                                })
 
-
+        expect(JsonPath.on(json, '$..errors')[0][0]).to include({ 'message' => 'Invalid credentials!' })
+        expect(JsonPath.on(json, '$..extensions')).to include({ 'code' => 'INVALID_CREDENTIALS' })
       end
     end
 

@@ -1,43 +1,56 @@
 class AuthenticationManager
-  attr_accessor :user
 
-  def initialize(user_name:)
-    @user = fetch_user(user_name)
+  attr_accessor :token
+
+  def initialize(token)
+    @token = token
   end
 
-  def login(password)
-    unless valid_password?(password)
-      raise AuthenticationError.new('Enter a valid password', code: 'AUTHENTICATION_ERROR', parameter: 'password')
-    end
+  def verify
+    missing_token if token.blank?
+    params = token_params
+    user = fetch_user(params[:user_id])
+    invalid_token unless user
 
-    set_current_user
-  end
-
-  def user_signed_in?
-    Current.user.present?
+    current_user(user)
+    true
   end
 
   private
 
-  def fetch_user(name)
-    user = User.find_by(user_name: name)
-
-    if user.nil?
-      raise AuthenticationError.new(
-        'Enter a valid user name',
-        code: 'AUTHENTICATION_ERROR',
-        parameter: 'user name'
-      )
-    end
-
-    user
+  def fetch_user(id)
+    User.find_by(id: id)
   end
 
-  def valid_password?(password)
-    user.authenticate(password)
+  def token_params
+    token = parse_token
+    params = JsonWebToken.decode(token)
+    invalid_token if params.empty?
+
+    {
+      exp: params[:exp],
+      user_id: params[:user_id]
+    }
   end
 
-  def set_current_user
+  def parse_token
+    token.split(' ').last
+  end
+
+  def current_user(user)
     Current.user = user
   end
+
+  def raise_error(msg, code)
+    raise AuthenticationError.new(msg, code: code)
+  end
+
+  def invalid_token
+    raise_error('Invalid token!', 'TOKEN_INVALID')
+  end
+
+  def missing_token
+    raise_error('Missing token!', 'TOKEN_MISSING')
+  end
+
 end

@@ -1,8 +1,8 @@
-class AuthenticationError < ApplicationError
-  attr_reader :parameter
+class AuthenticationError < StandardError
 
-  def initialize(message, code: 'AUTHENTICATION_ERROR', parameter: nil)
-    super(message: message, code: code)
-    @parameter = parameter
+  attr_accessor :code
+  def initialize(message, code: 'AUTHENTICATION_ERROR')
+    super(message)
+    @code = code
   end
 end

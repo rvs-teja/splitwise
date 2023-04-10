@@ -39,6 +39,15 @@ class SplitwiseRailsSchema < GraphQL::Schema
   end
 
   rescue_from(AuthenticationError) do |err, _obj, _args, _ctx, _field|
-    raise GraphQL::ExecutionError.new(err.message, extensions: { code: err.code, parameter: err.parameter })
+    raise GraphQL::ExecutionError.new(err.message, extensions: { code: err.code })
   end
+
+  rescue_from(ActiveRecord::RecordNotFound) do |err, _obj, _args, _ctx, _field|
+    raise GraphQL::ExecutionError.new(err.message, extensions: { code: 'RECORD_NOT_FOUND' })
+  end
+
+  rescue_from(ActiveRecord::RecordInvalid) do |err, _obj, _args, _ctx, _field|
+    raise GraphQL::ExecutionError.new(err.message, extensions: { code: 'RECORD_INVALID' })
+  end
+
 end
